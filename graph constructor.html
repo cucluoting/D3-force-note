@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+rect {
+	fill: none;
+	/*只适用于SVG。只有鼠标指针在元素内部或边界时,元素才会成为鼠标事件的目标*/
+	pointer-events: all;
+}
+
+.node {
+	fill: #000;
+}
+
+.cursor {
+	fill: none;
+	stroke: brown;
+	/*元素永远不会成为鼠标事件的target。但是，当其后代元素的pointer-events属性指定其他值时，鼠标事件可以指向后代元素*/
+	pointer-events: none;
+}
+
+.link {
+	stroke: #999;
+}
+
+</style>
+<body>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 960,
+		height = 500;
+
+var fill = d3.scale.category20();
+
+// linkDistance设定链接节点间的目标距离为指定的值。
+// charge设置电荷强度charge 为指定的值。负值导致节点排斥，而正值导致节点吸引。
+var force = d3.layout.force()
+		.size([width, height])
+		.nodes([{}]) // initialize with a single node
+		.linkDistance(30)
+		.charge(-60)
+		.on("tick", tick);
+
+var svg = d3.select("body").append("svg")
+		.attr("width", width)
+		.attr("height", height)
+		.on("mousemove", mousemove)
+		.on("mousedown", mousedown);
+
+// 设置鼠标事件有用的范围（pointer-events）
+svg.append("rect")
+		.attr("width", width)
+		.attr("height", height);
+
+var nodes = force.nodes(),
+		links = force.links(),
+		node = svg.selectAll(".node"),
+		link = svg.selectAll(".link");
+
+// .attr("transform", "translate(-100,-100)")把鼠标的圆先隐藏
+var cursor = svg.append("circle")
+		.attr("r", 30)
+		.attr("transform", "translate(-100,-100)")
+		.attr("class", "cursor");
+
+restart();
+
+function mousemove() {
+	cursor.attr("transform", "translate(" + d3.mouse(this) + ")");
+}
+
+function mousedown() {
+	// 添加新点
+	var point = d3.mouse(this),
+			node = {x: point[0], y: point[1]},
+			n = nodes.push(node);
+
+	// add links to any nearby nodes
+	nodes.forEach(function(target) {
+		var x = target.x - node.x,
+				y = target.y - node.y;
+		// 如果距离小于30就
+		if (Math.sqrt(x * x + y * y) < 30) {
+			// 如果指定了链接links ，设置布局的相关链接为指定的links 数组。
+			// source - 源节点（节点中的元素）。
+			// target - 目标节点（节点中的元素）。
+			links.push({source: node, target: target});
+		}
+	});
+
+	restart();
+}
+
+// "tick"事件将被指派为模拟的每个tick。监听节拍事件来更新节点和链接的显示位置。
+// 可以在tick设置他们的位置
+function tick() {
+	link.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; });
+
+	node.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; });
+}
+function restart() {
+	link = link.data(links);
+	// 在当前选择与.node选择器匹配的每个元素之前插入具有line的新元素
+	// 返回包含插入的元素的一个新的选择。
+	link.enter().insert("line", ".node")
+			.attr("class", "link");
+	// console.log(JSON.stringify(link));
+
+	node = node.data(nodes);
+
+	node.enter().insert("circle", ".cursor")
+			.attr("class", "node")
+			.attr("r", 5)
+			.call(force.drag);
+
+	force.start();
+}
+
+</script>

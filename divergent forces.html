@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+	stroke-width: 1.5px;
+}
+
+</style>
+<body>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 960,
+		height = 500;
+
+// 构造一个有10种颜色的序数比例尺。
+var fill = d3.scale.category10();
+
+// range产生一系列的数值, 给nodes生成100个对象并赋给index值
+var nodes = d3.range(100).map(function(i) {
+	return {index: i};
+});
+
+// d3.layout.force()构造一个新的力导向布局
+
+// force.nodes([nodes])设置布局的相关节点为指定的nodes 数组。
+// 每个节点具有以下属性：
+// * index - nodes 数组节点的索引（从零开始）。
+// * x -当前节点的x坐标位置。
+// * y -当前节点的位置y坐标。
+// * px -前一个节点位置的x坐标。
+// * py -前一个节点位置的y坐标。
+// * fixed -一个布尔值，表示节点位置是否被锁定。
+// * weight -节点权重；相关联的链接的数目。 
+
+// force.size([size])如果指定了size，设置可用的布局大小为指定的代表x和y的两元素数字数组来。
+
+// force.on(type, listener)注册指定的监听器listener 为力布局指定类型的事件。
+// "tick"事件将被指派为模拟的每个tick。
+
+// force.start()启动模拟；当首次创建布局时此方法必须被调用，然后分配节点和链接。
+var force = d3.layout.force()
+		.nodes(nodes)
+		.size([width, height])
+		.on("tick", tick)
+		.start();
+
+// console.log(JSON.stringify(nodes));
+
+var svg = d3.select("body").append("svg")
+		.attr("width", width)
+		.attr("height", height);
+
+// data将数据分配给选择的DOM元素
+// enter当前选择中存在但是当前DOM元素中还不存在的每个数据元素的占位符节点。
+// append在当前选择的每个元素最后追加具有指定名称的新元素，返回包含追加元素的新选择。
+// cx 和 cy 属性定义圆中心的 x 和 y 坐标。d为当前元素，i为当前索引，r 属性定义圆的半径。
+// fill 属性设置形状内的颜色。stroke 和 stroke-width 属性控制如何显示形状的轮廓。
+// force.drag绑定一个行为允许交互式拖动到节点，无论是使用鼠标或触摸。和节点中的call操作符一起使用
+// on添加事件监听器
+// & 对两个 32 位表达式的每一个位执行按位“与”运算。如果两个位均为 1，则结果是 1。否则，结果为 0。
+var node = svg.selectAll(".node")
+		.data(nodes)
+	.enter().append("circle")
+		.attr("class", "node")
+		.attr("cx", function(d) { return d.x; })
+		.attr("cy", function(d) { return d.y; })
+		.attr("r", 8)
+		.style("fill", function(d, i) { return fill(i & 3); })
+		.style("stroke", function(d, i) { return d3.rgb(fill(i & 3)).darker(2); })
+		.call(force.drag)
+		.on("mousedown", function() { d3.event.stopPropagation(); });
+
+// console.log(JSON.stringify(node));
+
+// 透明度变化效果
+svg.style("opacity", 1e-6)
+	.transition()
+		.duration(1000)
+		.style("opacity", 1);
+
+d3.select("body")
+		.on("mousedown", mousedown);
+
+function tick(e) {
+
+	// Push different nodes in different directions for clustering.
+	// console.log(e.alpha);
+	var k = 6 * e.alpha;
+	nodes.forEach(function(o, i) {
+		o.y += i & 1 ? k : -k;
+		o.x += i & 2 ? k : -k;
+	});
+
+	node.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; });
+}
+
+function mousedown() {
+	// o当前项，i当前项的索引
+	nodes.forEach(function(o, i) {
+		o.x += (Math.random() - .5) * 40;
+		o.y += (Math.random() - .5) * 40;
+	});
+	// 此方法设置内部的alpha参数设置为0.1，然后重新启动定时器。 
+	force.resume();
+}
+
+</script>
