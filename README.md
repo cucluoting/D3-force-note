@@ -5,9 +5,14 @@ D3.js力布局学习笔记
 
 ## 各文件说明：（括号内为官方案例链接）
 
-1. divergent forces.html——分散的力布局（[divergent forces](http://bl.ocks.org/mbostock/1021841)）
+一、 divergent forces.html——分散的力布局（[divergent forces](http://bl.ocks.org/mbostock/1021841)）
+
 ![](https://raw.githubusercontent.com/cucluoting/D3-force-note/master/img/divergent%20forces.png)
 
-2. graph constructor.html——动态生成点与链接（[graph constructor](http://bl.ocks.org/mbostock/929623)）
+二、 graph constructor.html——动态生成点与链接（[graph constructor](http://bl.ocks.org/mbostock/929623)）
 
 ![](https://raw.githubusercontent.com/cucluoting/D3-force-note/master/img/graph%20constructor.png)
+
+三、 force-directed tree.html——可折叠的力导向布局（[force-directed tree](http://bl.ocks.org/mbostock/1062288)）
+
+![](https://raw.githubusercontent.com/cucluoting/D3-force-note/master/img/force-directed%20tree.png)
