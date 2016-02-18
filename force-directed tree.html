@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Force-Directed Graph</title>
+<style>
+
+.node {
+	cursor: pointer;
+	stroke: #3182bd;
+	stroke-width: 1.5px;
+}
+
+.link {
+	fill: none;
+	stroke: #9ecae1;
+	stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<script src="d3-master/d3.min.js"></script>
+<script>
+
+var width = 960,
+		height = 500,
+		root;
+
+var force = d3.layout.force()
+		.size([width, height])
+		.on("tick", tick);
+
+var svg = d3.select("body").append("svg")
+		.attr("width", width)
+		.attr("height", height);
+
+var link = svg.selectAll(".link"),
+		node = svg.selectAll(".node");
+
+// 加载JSON文件
+d3.json("readme.json", function(error, json) {
+	if (error) throw error;
+
+	root = json;
+	update();
+});
+
+function update() {
+	// flatten给每个对象加上id
+	// d3.layout.tree()创建一个树布局
+	// links给定一个特殊的结点数组nodes
+	var nodes = flatten(root),
+			links = d3.layout.tree().links(nodes);
+
+	// links设置布局的相关链接为指定的links 数组。
+	// Restart the force layout.
+	force
+			.nodes(nodes)
+			.links(links)
+			.start();
+
+	// key函数，基于先前结合的数据返回一个用于连接数据和相关的元素的字符串。
+	// Update the links…
+	link = link.data(links, function(d) { return d.target.id; });
+
+	// exit操作符只是返回一个exit选择引用，由你来删除新节点。
+	// remove从当前文档删除当前选择中的元素。
+	// Exit any old links.
+	link.exit().remove();
+
+	// Enter any new links.
+	link.enter().insert("line", ".node")
+			.attr("class", "link")
+			.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; });
+
+	// Update the nodes…
+	node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+	// Exit any old nodes.
+	node.exit().remove();
+
+	// Enter any new nodes.
+	node.enter().append("circle")
+			.attr("class", "node")
+			.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; })
+			.attr("r", function(d) { return Math.sqrt(d.size) / 10 || 4.5; })
+			.style("fill", color)
+			.on("click", click)
+			.call(force.drag);
+}
+
+function tick() {
+	link.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; });
+
+	node.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; });
+}
+
+// 是否折叠——1. 折叠为蓝色#3182bd；2. 没折叠的是否有子节点——有为#c6dbef；没有为橙色#fd8d3c
+// Color leaf nodes orange, and packages white or blue.
+function color(d) {
+	return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
+}
+
+// Toggle children on click.
+function click(d) {
+	if (!d3.event.defaultPrevented) {
+		// 如果有子节点则将子节点赋值给表示折叠的_children，并删除展开的children
+		// 如果没有则展开
+		if (d.children) {
+			d._children = d.children;
+			d.children = null;
+		} else {
+			d.children = d._children;
+			d._children = null;
+		}
+		update();
+	}
+}
+
+// Returns a list of all nodes under the root.
+function flatten(root) {
+	var nodes = [], i = 0;
+
+	function recurse(node) {
+		// 如果有子元素则对子元素执行该函数
+		if (node.children) node.children.forEach(recurse);
+		if (!node.id) node.id = ++i;
+		nodes.push(node);
+	}
+
+	recurse(root);
+	return nodes;
+}
+
+</script>
