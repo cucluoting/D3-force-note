@@ -16,3 +16,7 @@ D3.js力布局学习笔记
 三、 force-directed tree.html——可折叠的力导向布局（[force-directed tree](http://bl.ocks.org/mbostock/1062288)）
 
 ![](https://raw.githubusercontent.com/cucluoting/D3-force-note/master/img/force-directed%20tree.png)
+
+四、 force-directed images and labels.html——带图片和标签的力导向布局（[force-directed images and labels](http://bl.ocks.org/mbostock/950642)）
+
+![](https://raw.githubusercontent.com/cucluoting/D3-force-note/master/img/force-directed%20images%20and%20labels.png)
